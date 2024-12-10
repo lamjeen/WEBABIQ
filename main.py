@@ -1,4 +1,3 @@
-"""Main application entry point"""
 import tkinter as tk
 from splash_screen import SplashScreen
 from login_screen import LoginScreen
