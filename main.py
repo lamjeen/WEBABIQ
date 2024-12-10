@@ -8,7 +8,6 @@ def main():
     root = tk.Tk()
     root.title("Webabiq")
     
-    # Set window size and center it
     window_width = 400
     window_height = 600
     screen_width = root.winfo_screenwidth()
