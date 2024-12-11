@@ -13,24 +13,20 @@ class AccountData:
             'date': datetime.now()
         })
     
-    @property
-    def today_date(self):
+    def get_today_date(self):
         """Get formatted current date"""
         return datetime.now().strftime("%B %d, %Y")
     
-    @property
-    def income(self):
+    def get_income(self):
         """Calculate total income"""
         return sum(t['amount'] for t in self.transactions 
                   if t['category'] == 'Income')
     
-    @property
-    def paid(self):
+    def get_paid(self):
         """Calculate total paid amount"""
         return sum(t['amount'] for t in self.transactions 
                   if t['category'] == 'Paid')
     
-    @property
-    def total_saving(self):
+    def get_total_saving(self):
         """Calculate total savings"""
-        return self.income - self.paid
+        return self.get_income() - self.get_paid()

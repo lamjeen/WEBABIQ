@@ -21,7 +21,7 @@ class SplashScreen(tk.Frame):
         self.create_logo()
     
     def create_logo(self):
-        self.logo_path = os.path.join("WEBABIQ/assets/logo.png")
+        self.logo_path = os.path.join("assets/logo.png")
         
         if os.path.exists(self.logo_path):
             try:

@@ -31,7 +31,7 @@ class AccountScreen(tk.Frame):
         # Today's date
         date_label = tk.Label(
             self,
-            text=self.account_data.today_date,
+            text=self.account_data.get_today_date(),
             font=("Arial", 14),
             bg="#FFB6C1",
             fg="#666666"
@@ -57,7 +57,7 @@ class AccountScreen(tk.Frame):
         
         self.saving_label = tk.Label(
             month_frame,
-            text=f"${self.account_data.total_saving:.2f}",
+            text=f"${self.account_data.get_total_saving():.2f}",
             font=("Arial", 16, "bold"),
             bg="white",
             fg="#E75480"
@@ -87,7 +87,7 @@ class AccountScreen(tk.Frame):
         
         self.income_label = tk.Label(
             income_frame,
-            text=f"${self.account_data.income:.2f}",
+            text=f"${self.account_data.get_income():.2f}",
             font=("Arial", 12, "bold"),
             bg="#E75480",
             fg="white"
@@ -113,7 +113,7 @@ class AccountScreen(tk.Frame):
         
         self.paid_label = tk.Label(
             paid_frame,
-            text=f"${self.account_data.paid:.2f}",
+            text=f"${self.account_data.get_paid():.2f}",
             font=("Arial", 12, "bold"),
             bg="#E75480",
             fg="white"
@@ -201,6 +201,6 @@ class AccountScreen(tk.Frame):
     
     def update_displays(self):
         """Update all display labels with current data"""
-        self.saving_label.config(text=f"${self.account_data.total_saving:.2f}")
-        self.income_label.config(text=f"${self.account_data.income:.2f}")
-        self.paid_label.config(text=f"${self.account_data.paid:.2f}")
+        self.saving_label.config(text=f"${self.account_data.get_total_saving():.2f}")
+        self.income_label.config(text=f"${self.account_data.get_income():.2f}")
+        self.paid_label.config(text=f"${self.account_data.get_paid():.2f}")

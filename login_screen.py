@@ -126,7 +126,7 @@ class LoginScreen(tk.Frame):
         self.username_entry.focus()
     
     def add_bottom_logo(self):
-        logo_path = os.path.join("assets", "loginlogo.png")
+        logo_path = os.path.join("assets/loginlogo.png")
         if os.path.exists(logo_path):
             try:
                 # Load and resize the logo

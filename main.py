@@ -16,10 +16,8 @@ def main():
     center_y = int(screen_height/2 - window_height/2)
     root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
     
-    # Create and show splash screen
     splash = SplashScreen(root)
     
-    # Schedule the login screen to appear after splash
     root.after(3000, lambda: show_login(root, splash))
     
     root.mainloop()
