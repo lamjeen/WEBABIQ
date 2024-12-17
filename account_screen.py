@@ -1,8 +1,7 @@
 """Account book main screen implementation"""
 import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
-import os
+from tkinter import ttk, messagebox
+from datetime import datetime, timedelta
 from account_data import AccountData
 
 class AccountScreen(tk.Frame):
@@ -31,7 +30,7 @@ class AccountScreen(tk.Frame):
         # Today's date
         date_label = tk.Label(
             self,
-            text=self.account_data.get_today_date(),
+            text=self.account_data.today_date,
             font=("Arial", 14),
             bg="#FFB6C1",
             fg="#666666"
@@ -57,7 +56,7 @@ class AccountScreen(tk.Frame):
         
         self.saving_label = tk.Label(
             month_frame,
-            text=f"${self.account_data.get_total_saving():.2f}",
+            text=f"${self.account_data.total_saving:.2f}",
             font=("Arial", 16, "bold"),
             bg="white",
             fg="#E75480"
@@ -87,7 +86,7 @@ class AccountScreen(tk.Frame):
         
         self.income_label = tk.Label(
             income_frame,
-            text=f"${self.account_data.get_income():.2f}",
+            text=f"${self.account_data.income:.2f}",
             font=("Arial", 12, "bold"),
             bg="#E75480",
             fg="white"
@@ -113,7 +112,7 @@ class AccountScreen(tk.Frame):
         
         self.paid_label = tk.Label(
             paid_frame,
-            text=f"${self.account_data.get_paid():.2f}",
+            text=f"${self.account_data.paid:.2f}",
             font=("Arial", 12, "bold"),
             bg="#E75480",
             fg="white"
@@ -134,25 +133,109 @@ class AccountScreen(tk.Frame):
         )
         enter_button.pack(pady=20)
         
-        # Book history button
-        history_button = tk.Button(
-            self,
-            text="book history",
-            font=("Arial", 16, "bold"),
+        # Monthly summary frame
+        monthly_frame = tk.Frame(self, bg="#E75480")
+        monthly_frame.pack(fill="x", padx=20, pady=10)
+        
+        # Year label
+        tk.Label(
+            monthly_frame,
+            text="2024",
+            font=("Arial", 14, "bold"),
             bg="white",
-            fg="#E75480",
-            relief="flat",
-            padx=40,
-            pady=10,
-            command=self.show_history
+            fg="#E75480"
+        ).pack(fill="x", pady=5)
+        
+        # Monthly range and amount
+        month_info_frame = tk.Frame(monthly_frame, bg="#E75480")
+        month_info_frame.pack(fill="x", pady=5)
+        
+        self.monthly_range_label = tk.Label(
+            month_info_frame,
+            text=self.account_data.monthly_range,
+            font=("Arial", 12),
+            bg="#E75480",
+            fg="white"
         )
-        history_button.pack(side="bottom", pady=20)
+        self.monthly_range_label.pack(side="left", padx=20)
+        
+        self.monthly_amount_label = tk.Label(
+            month_info_frame,
+            text=f"${self.account_data.monthly_total:.2f}",
+            font=("Arial", 12),
+            bg="#E75480",
+            fg="white"
+        )
+        self.monthly_amount_label.pack(side="right", padx=20)
+        
+        # Transaction history
+        self.create_history_view()
+    
+    def create_history_view(self):
+        """Create the transaction history view"""
+        # Headers
+        headers_frame = tk.Frame(self, bg="#E75480")
+        headers_frame.pack(fill="x", padx=20, pady=(20, 0))
+        
+        headers = ["DATE", "INCOME/PAID", "DESCRIPTION"]
+        for header in headers:
+            tk.Label(
+                headers_frame,
+                text=header,
+                font=("Arial", 10, "bold"),
+                bg="#E75480",
+                fg="white",
+                width=15
+            ).pack(side="left", padx=5, pady=5)
+        
+        # Scrollable transaction list
+        self.transactions_frame = tk.Frame(self, bg="white")
+        self.transactions_frame.pack(fill="both", expand=True, padx=20)
+        
+        self.update_history()
+    
+    def update_history(self):
+        """Update the transaction history display"""
+        # Clear existing transactions
+        for widget in self.transactions_frame.winfo_children():
+            widget.destroy()
+        
+        # Add current transactions
+        for transaction in reversed(self.account_data.monthly_transactions):
+            row = tk.Frame(self.transactions_frame, bg="white")
+            row.pack(fill="x", pady=1)
+            
+            # Date
+            tk.Label(
+                row,
+                text=transaction['date'].strftime("%Y-%m-%d"),
+                bg="white",
+                width=15
+            ).pack(side="left", padx=5)
+            
+            # Amount with sign
+            amount_text = f"+${transaction['amount']:.2f}" if transaction['category'] == 'Income' else f"-${transaction['amount']:.2f}"
+            tk.Label(
+                row,
+                text=amount_text,
+                bg="white",
+                width=15,
+                fg="#E75480" if transaction['category'] == 'Income' else "#666666"
+            ).pack(side="left", padx=5)
+            
+            # Description
+            tk.Label(
+                row,
+                text=transaction['description'],
+                bg="white",
+                width=15
+            ).pack(side="left", padx=5)
     
     def show_entry_dialog(self):
         """Show dialog for entering new transaction"""
         dialog = tk.Toplevel(self)
         dialog.title("New Entry")
-        dialog.geometry("300x200")
+        dialog.geometry("300x250")
         
         # Amount entry
         tk.Label(dialog, text="Amount:").pack(pady=5)
@@ -167,40 +250,44 @@ class AccountScreen(tk.Frame):
         tk.Radiobutton(dialog, text="Paid", variable=category_var, 
                       value="Paid").pack()
         
+        # Description entry
+        tk.Label(dialog, text="Description:").pack(pady=5)
+        desc_entry = tk.Entry(dialog)
+        desc_entry.pack(pady=5)
+        
         def save_entry():
             try:
                 amount = float(amount_entry.get())
-                self.account_data.add_transaction(amount, category_var.get())
+                description = desc_entry.get().strip()
+                if not description:
+                    raise ValueError("Description is required")
+                    
+                self.account_data.add_transaction(
+                    amount, 
+                    category_var.get(),
+                    description
+                )
                 self.update_displays()
                 dialog.destroy()
-            except ValueError:
-                tk.messagebox.showerror("Error", "Please enter a valid amount")
+            except ValueError as e:
+                messagebox.showerror("Error", str(e))
         
-        tk.Button(dialog, text="Save", command=save_entry).pack(pady=20)
-    
-    def show_history(self):
-        """Show transaction history"""
-        dialog = tk.Toplevel(self)
-        dialog.title("Book History")
-        dialog.geometry("400x300")
-        
-        # Create treeview
-        tree = ttk.Treeview(dialog, columns=("Date", "Category", "Amount"))
-        tree.heading("Date", text="Date")
-        tree.heading("Category", text="Category")
-        tree.heading("Amount", text="Amount")
-        
-        for transaction in self.account_data.transactions:
-            tree.insert("", "end", values=(
-                transaction['date'].strftime("%Y-%m-%d"),
-                transaction['category'],
-                f"${transaction['amount']:.2f}"
-            ))
-        
-        tree.pack(fill="both", expand=True, padx=10, pady=10)
+        tk.Button(
+            dialog,
+            text="Save",
+            command=save_entry,
+            bg="#E75480",
+            fg="white",
+            relief="flat",
+            padx=20,
+            pady=5
+        ).pack(pady=20)
     
     def update_displays(self):
         """Update all display labels with current data"""
-        self.saving_label.config(text=f"${self.account_data.get_total_saving():.2f}")
-        self.income_label.config(text=f"${self.account_data.get_income():.2f}")
-        self.paid_label.config(text=f"${self.account_data.get_paid():.2f}")
+        self.saving_label.config(text=f"${self.account_data.total_saving:.2f}")
+        self.income_label.config(text=f"${self.account_data.income:.2f}")
+        self.paid_label.config(text=f"${self.account_data.paid:.2f}")
+        self.monthly_range_label.config(text=self.account_data.monthly_range)
+        self.monthly_amount_label.config(text=f"${self.account_data.monthly_total:.2f}")
+        self.update_history()
